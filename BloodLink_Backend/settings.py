@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 from django.conf import settings
@@ -27,7 +28,7 @@ SECRET_KEY = 'django-insecure-)a&2-pq5+==vxg!@24bec_j8qgb9n4m=x2(8!iph#x3p%v$b#s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.101', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['192.168.1.101', '127.0.0.1', 'localhost',os.getenv("RENDER_EXTERNAL_HOSTNAME")]
 
 
 
@@ -76,11 +77,13 @@ SIMPLE_JWT = {
 
 
 # Static files (CSS, JavaScript, Images)
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+#STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # ⚠️ Il faut bien écrire ce bloc en dehors du dictionnaire REST_FRAMEWORK
 from django.conf.locale.fr import formats as fr_formats
@@ -93,6 +96,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -122,12 +126,23 @@ WSGI_APPLICATION = 'BloodLink_Backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+"""
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
+}
+"""
+import dj_database_url
+
+DATABASES = {
+    "default": dj_database_url.config(
+        default=os.getenv("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
 
 
